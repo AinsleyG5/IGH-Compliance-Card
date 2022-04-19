@@ -1,14 +1,9 @@
 ## Score Card
 
-A sample card for Job records that shows the current job's score, a contrived score that is calculated by some  scoring criteria as well as an expander and a list view.
+A sample card for Placement records that shows the candidates contrived compliance position
 
-![Screenshot](../doc_files/score-card-1.png)
+![Screenshot](../insight-poc-card-compliance/Placement%20Req%20Review%20Card.png)
 
-![Screenshot](../doc_files/score-card-2.png)
-
-#### Prerequisites
-
- * [Host File Hack](../README.md#prerequisites) (One Time Only)
 
 #### Install Dependencies
 
@@ -23,9 +18,5 @@ npm install
     ```npm
     npm start
     ```
-
- * Follow the steps for [Viewing the App Locally](../README.md#viewing-the-app).
-
- * Follow the steps for [Adding the Extension to Bullhorn](../README.md#adding-to-bullhorn).
 
  * Open a record in Bullhorn and view your custom extension.
