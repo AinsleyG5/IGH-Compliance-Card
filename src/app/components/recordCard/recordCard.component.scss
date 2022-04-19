@@ -1,0 +1,179 @@
+@import '~novo-elements/novo-elements.scss';
+@import '../../../styles.scss';
+
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: $grey;
+  margin: 2rem;
+
+  i {
+    font-size: 4rem;
+    margin: 1rem;
+  }
+
+  .details {
+    text-align: center;
+  }
+}
+
+.custom-card {
+  height: 100%;
+
+  .loading-container {
+    display: flex;
+    justify-content: center;
+    padding: 10rem;
+  }
+
+  .card-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 3rem;
+
+    .container-pies {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr;
+      gap: 0px 0px;
+      grid-auto-flow: row;
+      grid-template-areas:
+        ". .";
+    }
+
+    .doughnut-chart-container {
+      margin: 0rem;
+      max-width: 235px
+    }
+
+    .numbers-container {
+      display: flex;
+      justify-content: space-around;
+      padding: 0.5rem;
+      margin-top: 2rem;
+
+      .number {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-left: 2rem;
+        margin-right: 2rem;
+      }
+
+      .value {
+        font-size: 3rem;
+        padding: 0.25rem;
+      }
+
+      label {
+        text-transform: uppercase;
+        color: grey;
+        font-weight: 500;
+        font-size: 0.9rem;
+        user-select: none;
+      }
+
+      .submission .value {
+        color: $submission;
+      }
+
+      .placement .value {
+        color: $placement;
+      }
+    }
+
+    .details-button-container {
+      margin-top: 2rem;
+      width: 100%;
+
+      button {
+        width: 100%;
+      }
+    }
+
+    .details {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 2rem;
+      width: 100%;
+
+      .grid-container {
+        width: 100%;
+        display: grid;
+        margin: 2rem;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr;
+        gap: 10px 10px;
+        grid-template-areas:
+          ". ."
+                ;
+
+          .novo-card {
+            margin: 1rem;
+            min-width: 25%;
+            min-height: 25%;
+
+            .numbers-container {
+              display: flex;
+              justify-content: space-around;
+              padding: 0.5rem;
+              margin-top: 2rem;
+
+              .low {
+                color: $grapefruit;
+              }
+      
+              .number {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                margin-left: 2rem;
+                margin-right: 2rem;
+              }
+      
+              .value {
+                font-size: 3rem;
+                padding: 0.25rem;
+              }
+      
+              label {
+                text-transform: uppercase;
+                color: grey;
+                font-weight: 500;
+                font-size: 0.9rem;
+                user-select: none;
+              }
+      
+              .submission .value {
+                color: $submission;
+              }
+      
+              .placement .value {
+                color: $placement;
+              }
+            }
+          }
+      }
+
+      .historic-jobs-container {
+        margin-top: 2rem;
+      }
+    }
+  }
+
+  .high {
+    color: $grass;
+  }
+
+  .medium {
+    color: $sunflower;
+  }
+
+  .low {
+    color: $grapefruit;
+  }
+
+}

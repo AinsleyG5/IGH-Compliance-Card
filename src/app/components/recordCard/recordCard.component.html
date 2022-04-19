@@ -1,0 +1,188 @@
+<div *ngIf="!connected" class="error-container">
+  <i class="bhi-inactive"></i>
+  <h2 class="details">Cannot connect to Bullhorn.</h2>
+  <h3 class="details">This app can only be run inside of Bullhorn as a Custom Card on a Record. Please contact your admin if this is in error.</h3>
+</div>
+<div *ngIf="connected" class="custom-card">
+  <div *ngIf="loading" class="loading-container">
+    <novo-loading></novo-loading>
+  </div>
+  <div *ngIf="!loading" class="content">
+    <div *ngIf="errorMessage" class="error-container">
+      <i class="bhi-caution"></i>
+      <h2 class="details">{{errorMessage}}</h2>
+      <h3 class="details">{{errorDetails}}</h3>
+    </div>
+    <div *ngIf="!errorMessage" class="card-content">
+
+      <div class="container-pies">
+
+        <div class="doughnut-chart-container">
+          <app-doughnut-chart [probability]="score" description="Candidate Credentials"></app-doughnut-chart>
+        </div>
+  
+        <!-- <div class="doughnut-chart-container">
+          <app-doughnut-chart [probability]="scoreROE" description="Contract Credentials"></app-doughnut-chart>
+        </div> -->
+
+        <div class="doughnut-chart-container">
+          <app-doughnut-chart [probability]="onbPercent" description="Employment Documents"></app-doughnut-chart>
+        </div>
+
+      </div>
+      <!-- <div class="numbers-container">
+        <div class="average submission number">
+          <div class="value">{{ 1234 | number: '1.0-0' }}</div>
+          <label>Total Candidates
+            <i class="bhi-info"
+               tooltip="Total number of candidates in DB."
+               tooltipPosition="bottom"></i>
+          </label>
+        </div>
+        <div class="average placement number">
+          <div class="value">{{ 1234 | number: '1.0-0' }}</div>
+          <label>Candidates no Email
+            <i class="bhi-info"
+               tooltip="Candidates not in status of Archive without a valid email address."
+               tooltipPosition="bottom-left"></i>
+          </label>
+        </div>
+        <div class="candidates no phone number">
+          <div class="value">{{ 1234 | number: '1.0-0' }}</div>
+          <label>Candidates no Mobile
+            <i class="bhi-info"
+               tooltip="Candidates not in status of Archive without a valid phone number."
+               tooltipPosition="bottom-left"></i>
+          </label>
+        </div>
+        <div class="category-number">
+          <div class="value">{{ 1234 | number: '1.0-0' }}</div>
+          <label>Candidates no Category
+            <i class="bhi-info"
+               tooltip="Candidates not in a status of Archive with no category selected."
+               tooltipPosition="bottom-left"></i>
+          </label>
+        </div>
+        <div class="occupation-number">
+          <div class="value">{{ 1234 | number: '1.0-0' }}</div>
+          <label>Candidates no Job Title
+            <i class="bhi-info"
+               tooltip="Candidates not in a status of Archive with no job title."
+               tooltipPosition="bottom-left"></i>
+          </label>
+        </div>
+      </div> -->
+      <!-- <div class="details-button-container">
+        <button (click)="toggleDetails()" *ngIf="!this.showDetails"
+                icon="expand" theme="secondary">Why This Score?
+        </button>
+        <button (click)="toggleDetails()" *ngIf="this.showDetails"
+                icon="collapse" theme="secondary">Why This Score?
+        </button>
+      </div> -->
+      <div class="details">
+        <div class="grid-container">
+          
+          <novo-card [title]="'Credential Requirements'" class="novo-card"
+            [loading]="loading"
+            [move]="move"
+            (onRefresh)="onRefresh()"
+            [padding]="padding">
+            <div class="numbers-container">
+              <div class="no notes number">
+                <div class="low">
+                  <div class="value"> {{ current | number: '1.0-0' }}</div>
+                </div>  
+                    <label>Complete Candidate Credentials
+                    </label>
+              </div>
+            </div>
+              <novo-list direction="vertical">
+                <novo-list-item *ngFor="let item of certReqItems">
+                    <item-header>
+                        <item-avatar [icon]="item.type"></item-avatar>
+                        <item-title>{{ current }} of {{ candCertReqCount }}</item-title>
+                        <item-header-end>
+                      </item-header-end>
+                    </item-header>
+                    <item-content direction="vertical">
+                        <p>
+                            <i class="{{item.icon.name}} {{item.icon.sentiment}}"></i>
+                            {{item.info}}
+                        </p>
+                    </item-content>
+                </novo-list-item>
+            </novo-list>
+          </novo-card>
+
+        <!-- <novo-card [title]="'Customer Contract Requirements'" class="novo-card"
+          [loading]="loading"
+          [move]="move"
+          [padding]="padding">
+          <div class="numbers-container">
+            <div class="no notes number">
+              <div class="low">
+                <div class="value"> {{ currentROE.length | number: '1.0-0' }}</div>
+              </div>  
+                  <label>Complete Contract Credentials
+                  </label>
+            </div>
+          </div>
+            <novo-list direction="vertical">
+              <novo-list-item *ngFor="let item of contReqItems">
+                  <item-header>
+                      <item-avatar [icon]="item.type"></item-avatar>
+                      <item-title> 0 of {{ roeReqCount }}</item-title>
+                      <item-header-end>
+                        <!-- <span>
+                            <i class="bhi-clock"></i>
+                            {{item.timeAgo | date: 'shortTime'}}
+                        </span> -->
+                    <!-- </item-header-end>
+                  </item-header>
+                  <item-content direction="vertical">
+                      <p>
+                          <i class="{{item.icon.name}} {{item.icon.sentiment}}"></i>
+                          {{item.info}}
+                      </p>
+                  </item-content>
+              </novo-list-item>
+          </novo-list>
+        </novo-card> -->
+
+        <novo-card [title]="'Employment Documents'" class="novo-card"
+          [loading]="loading"
+          [move]="move"
+          [padding]="padding">
+          <div class="numbers-container">
+            <div class="no notes number">
+              <div class="low">
+                <div class="value"> {{ onbReceived | number: '1.0-0' }}</div>
+              </div>  
+                  <label>Complete Employment Docs
+                  </label>
+            </div>
+          </div>
+            <novo-list direction="vertical">
+              <novo-list-item *ngFor="let item of empReqItems">
+                  <item-header>
+                      <item-avatar [icon]="item.type"></item-avatar>
+                      <item-title> {{ onbReceived }} of {{ onbSent }}</item-title>
+                      <item-header-end>
+                    </item-header-end>
+                  </item-header>
+                  <item-content direction="vertical">
+                      <p>
+                          <i class="{{item.icon.name}} {{item.icon.sentiment}}"></i>
+                          Employment Docs
+                      </p>
+                  </item-content>
+              </novo-list-item>
+          </novo-list>
+        </novo-card>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
