@@ -26,7 +26,7 @@
         </div> -->
 
         <div class="doughnut-chart-container">
-          <app-doughnut-chart [probability]="onbPercent" description="Employment Documents"></app-doughnut-chart>
+          <app-doughnut-chart [probability]="onbPercent" description="Employment Tasks"></app-doughnut-chart>
         </div>
 
       </div>
@@ -150,7 +150,7 @@
           </novo-list>
         </novo-card> -->
 
-        <novo-card [title]="'Employment Documents'" class="novo-card"
+        <novo-card [title]="'Employment Tasks'" class="novo-card"
           [loading]="loading"
           [move]="move"
           [padding]="padding">
@@ -159,7 +159,7 @@
               <div class="low">
                 <div class="value"> {{ onbReceived | number: '1.0-0' }}</div>
               </div>  
-                  <label>Complete Employment Docs
+                  <label>Complete Employment Tasks
                   </label>
             </div>
           </div>
@@ -174,7 +174,7 @@
                   <item-content direction="vertical">
                       <p>
                           <i class="{{item.icon.name}} {{item.icon.sentiment}}"></i>
-                          Employment Docs
+                          Employment Tasks
                       </p>
                   </item-content>
               </novo-list-item>

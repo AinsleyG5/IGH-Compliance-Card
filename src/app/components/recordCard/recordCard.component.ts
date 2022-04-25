@@ -23,10 +23,10 @@ export class RecordCardComponent implements OnInit {
   // Current job data
   currentJob: JobOrder;
   jobMeta: BullhornMeta;
-  candCertReqFields: string[] = ['id', 'certification', 'candidateCertificationStatus', 'owner(id,firstName,lastName)', 'candidateCertificationName'];
+  candCertReqFields: string[] = ['id', 'certification', 'candidateCertificationStatus', 'owner(id,firstName,lastName)', 'candidateCertificationName', 'placement', 'status'];
   roeCOFields: string[] = ['id', 'int1', 'text1','dateAdded'];
   placementFields: string[] = ['id', 'candidate', 'onboardingDocumentReceivedCount', 'onboardingDocumentSentCount', 'onboardingPercentComplete'];
-  candCertReqFields2: string[] = ['id', 'candidate', 'certification', 'status'];
+  candCertReqFields2: string[] = ['id', 'candidate', 'certification', 'status', 'userCertificationStatus'];
   creationDate: Date;
   startDate: Date;
   daysOpen: number;
@@ -80,6 +80,7 @@ export class RecordCardComponent implements OnInit {
   private readonly privateLabelId: number;
   private readonly userId: number;
   private readonly entityId: number;
+  private readonly entity: string;
   certReqItems: any = [];
   contReqItems: any = [];
   activePlacementIDs: any = [];
@@ -100,6 +101,7 @@ export class RecordCardComponent implements OnInit {
   roeReqCount: any;
   empReqItems: any = [];
   candidateID: any = [];
+  candidateData: any = [];
 
   constructor(private appBridgeService: AppBridgeService,
               private httpService: HttpService,
@@ -112,6 +114,7 @@ export class RecordCardComponent implements OnInit {
     this.corpId = this.getBullhornId('CorporationID');
     this.privateLabelId = this.getBullhornId('PrivateLabelID');
     this.entityId = this.getBullhornId('EntityID');
+    this.entity = this.getBullhornEntity('EntityType');
     console.log(this.route.snapshot.queryParamMap);
     this.connected = !!this.userId && !!this.corpId && !!this.privateLabelId;
     Util.setHtmlExtensionClass('custom-menu-item');
@@ -133,8 +136,17 @@ export class RecordCardComponent implements OnInit {
   private async onRegistered(isRegistered: any) {
     if (isRegistered) {
       this.connected = true;
-      this.candidateID = await this.httpService.getEntity('Placement', this.entityId, 'id, candidate');
-      this.getAllData(this.candidateID.data.candidate.id);
+      if(this.entity == 'Placement') {
+        this.candidateID = await this.httpService.getEntity('Placement', this.entityId, 'id, candidate');
+        this.getAllData(this.candidateID.data.candidate.id, this.entity);
+      } else if(this.entity == 'Candidate') {
+        this.candidateID = this.entityId;
+        this.candidateData = await this.httpService.getEntity('Candidate', this.candidateID, 'id, firstName, lastName');
+        console.log(`Value of candidateData: `, this.candidateData);
+        this.getAllData(this.entityId, this.entity, this.candidateData);
+      } else {
+        this.errorMessage = "Could not identify the entity type when viewing the PoC!"
+      }
       this.isNovoEnabled = await this.appBridgeService.isNovoEnabled();
       if (this.isNovoEnabled) {
         document.body.className = 'zoom-out';
@@ -167,7 +179,7 @@ export class RecordCardComponent implements OnInit {
 
   /**
    */
-  private getAllData(candidateID: number): void {
+  private getAllData(candidateID: number, entityType: string, candidateData?: { data: {id: number, firstName: string, lastName: string} }): void {
     console.log(`CandidateID: `, candidateID);
 
     // Create search strings
@@ -178,48 +190,87 @@ export class RecordCardComponent implements OnInit {
 
     // Construct calls
     const calls: Promise<any>[] = [];
-    // calls.push(this.httpService.search(EntityTypes.CandidateCertificationRequirement, candCertReq, this.candCertReqFields.join(), 'off', 1));
-    calls.push(this.httpService.search(EntityTypes.PlacementCertification, placeID, this.candCertReqFields.join(), 'off', 15));
-    calls.push(this.httpService.search(EntityTypes.PlacementCustomObjectInstance8, roeQuery, this.roeCOFields.join(), 'off', 15));
-    calls.push(this.httpService.search('CandidateCertificationRequirement', candCertReq, this.candCertReqFields2.join(), 'off', 15));
-    calls.push(this.httpService.getEntity(EntityTypes.Placement, this.entityId, 'id, onboardingDocumentSentCount, onboardingDocumentReceivedCount, onboardingPercentComplete'));
-
-    // Process the data received
-    Promise.all(calls).then((responses: any[]) => {
-      console.log("Promise.all Response: ", responses);
-      this.scoreCategory = 'High';
-      this.candCertReqResponse = responses[0].data;
-      this.candCertReqCount = responses[0].data.length + responses[2].data.length;
-      this.roeReqCount = responses[1].data.length
-
-      this.onbSent = responses[3].data.onboardingDocumentSentCount;
-      this.onbReceived = responses[3].data.onboardingDocumentReceivedCount;
-      this.onbPercent = responses[3].data.onboardingPercentComplete / 100;
-      console.log(`Value of Cand Cert Req: `,responses[2].data);
-
-      this.resp.push({"title": 'Credentials and Licensure', "card": 'candidateCertReqs', "data": responses[0].data, "percent": (responses[0] / responses[0]) * 100});
-      this.resp.push({"title": 'Contract Requirements', "card": 'contractReqs', "data": responses[1].data, "percent": (responses[1] / responses[1]) * 100});
-      this.resp.push({"title": 'Employment Requirements', "card": 'employmentReqs', "data": responses[2].data, "percent": 0});
-
-
-      const placementCurrent = this.resp[0].data.filter(this.currentCheck);
-      const candidateCurrent = this.resp[2].data.filter(this.currentCheckCand);
-      this.current = (placementCurrent.length > 0 || candidateCurrent > 0) ? (placementCurrent.length + candidateCurrent.length) : 0
-      this.currentROE = this.resp[1].data.filter(this.currentCheckROE);
-      const currentROENo = this.currentROE.length
-
-      const scoreCheck = (this.candCertReqCount) ? (this.current / this.candCertReqCount) : 1
-      console.log(`Score Check: `, scoreCheck);
-      this.score =  (scoreCheck) ? scoreCheck : 0;
-
-      const scoreCheckROE = ( currentROENo / this.roeReqCount);
-      this.scoreROE = (scoreCheckROE) ? scoreCheckROE : 0
+    if(entityType == 'Placement') {
+      calls.push(this.httpService.search(EntityTypes.PlacementCertification, placeID, this.candCertReqFields.join(), 'off', 15));
+      calls.push(this.httpService.search(EntityTypes.PlacementCustomObjectInstance8, roeQuery, this.roeCOFields.join(), 'off', 15));
+      calls.push(this.httpService.search('CandidateCertificationRequirement', candCertReq, this.candCertReqFields2.join(), 'off', 15));
+      // calls.push(this.httpService.query(EntityTypes.Placement, candCertReq, 'id, placementCertifications,dateBegin', 'off', 15));
+      calls.push(this.httpService.getEntity(EntityTypes.Placement, this.entityId, 'id, onboardingDocumentSentCount, onboardingDocumentReceivedCount, onboardingPercentComplete'));
+  
+      // Process the data received
+      Promise.all(calls).then((responses: any[]) => {
+        console.log("Promise.all Response: ", responses);
+        this.scoreCategory = 'High';
+        this.candCertReqResponse = responses[0].data;
+        this.candCertReqCount = responses[0].data.length + responses[2].data.length;
+        this.roeReqCount = responses[1].data.length
+  
+        this.onbSent = responses[3].data.onboardingDocumentSentCount;
+        this.onbReceived = responses[3].data.onboardingDocumentReceivedCount;
+        this.onbPercent = responses[3].data.onboardingPercentComplete / 100;
+        console.log(`Value of Cand Cert Req: `,responses[2].data);
+  
+        this.resp.push({"title": 'Credentials and Licensure', "card": 'candidateCertReqs', "data": responses[0].data, "percent": (responses[0] / responses[0]) * 100});
+        this.resp.push({"title": 'Contract Requirements', "card": 'contractReqs', "data": responses[1].data, "percent": (responses[1] / responses[1]) * 100});
+        this.resp.push({"title": 'Employment Requirements', "card": 'employmentReqs', "data": responses[2].data, "percent": 0});
+  
+  
+        const placementCurrent = this.resp[0].data.filter(this.currentCheck);
+        const candidateCurrent = this.resp[2].data.filter(this.currentCheckCand);
+        console.log(`Candidate Current ==> `, candidateCurrent);
+        this.current = (placementCurrent.length >= 0 || candidateCurrent >= 0) ? (placementCurrent.length + candidateCurrent.length) : 0
+        this.currentROE = this.resp[1].data.filter(this.currentCheckROE);
+        const currentROENo = this.currentROE.length
+  
+        const scoreCheck = (this.candCertReqCount) ? (this.current / this.candCertReqCount) : 1
+        console.log(`Score Check: `, scoreCheck);
+        this.score =  (scoreCheck) ? scoreCheck : 0;
+  
+        const scoreCheckROE = ( currentROENo / this.roeReqCount);
+        this.scoreROE = (scoreCheckROE) ? scoreCheckROE : 0
+        
+        this.buildItems(this.resp);
+        console.log(`Build items: `, this.certReqItems);
+  
+        this.loading = false;
+      }).catch(this.handleError.bind(this));
+    } else if (entityType == 'Candidate') {
+      console.log(`candidateData: `, candidateData);
       
-      this.buildItems(this.resp);
-      console.log(`Build items: `, this.certReqItems);
+      const candPlaceCertReqs = `placement.candidate.lastName='${candidateData.data.lastName}' AND placement.candidate.firstName='${candidateData.data.firstName}' AND isDeleted=false`;
 
-      this.loading = false;
-    }).catch(this.handleError.bind(this));
+      calls.push(this.httpService.search('CandidateCertificationRequirement', candCertReq, this.candCertReqFields2.join(), 'off', 15));
+      calls.push(this.httpService.getEntity(EntityTypes.Candidate, this.entityId, 'id, onboardingDocumentSentCount, onboardingDocumentReceivedCount, onboardingPercentComplete'));
+      calls.push(this.httpService.search(EntityTypes.PlacementCertification, candPlaceCertReqs, this.candCertReqFields.join(), 'Off', 50));
+
+      // Process the data received
+      Promise.all(calls).then((responses: any[]) => {
+        console.log("Promise.all Response: ", responses);
+        this.scoreCategory = 'High';
+        this.candCertReqResponse = responses[0].data;
+        this.candCertReqCount = responses[0].data.length;
+  
+        this.onbSent = responses[1].data.onboardingDocumentSentCount;
+        this.onbReceived = responses[1].data.onboardingDocumentReceivedCount;
+        this.onbPercent = responses[1].data.onboardingPercentComplete / 100;
+  
+        this.resp.push({"title": 'Credentials and Licensure', "card": 'candidateCertReqs', "data": this.candCertReqResponse, "percent": (this.candCertReqResponse / this.candCertReqResponse) * 100});
+        this.resp.push({"title": 'Employment Requirements', "card": 'employmentReqs', "data": responses[1].data, "percent": (responses[1] / responses[1]) * 100});
+
+        const candidateCurrent = this.resp[0].data.filter(this.currentCheckCand);
+        console.log(`Candidate Current ==> `, candidateCurrent);
+        this.current = (candidateCurrent.length >= 0) ? candidateCurrent.length : 0
+  
+        const scoreCheck = (this.candCertReqCount) ? (this.current / this.candCertReqCount) : 1
+        console.log(`Score Check: `, scoreCheck);
+        this.score =  (scoreCheck) ? scoreCheck : 0;
+        
+        this.buildItems(this.resp);
+        console.log(`Build items: `, this.certReqItems);
+  
+        this.loading = false;
+      }).catch(this.handleError.bind(this));
+    }
   }
 
   /**
@@ -235,8 +286,12 @@ export class RecordCardComponent implements OnInit {
     return response.candidateCertificationStatus == 'Current';
   }
 
+  private notArchived(response: any) {
+    return response.candidateCertificationStatus != 'Archived';
+  }
+
   private currentCheckCand(response: any) {
-    if(response.status == 'Current' || response.status == 'Complete') {
+    if(response.status == 'Current' || response.status == 'Complete' || response.userCertificationStatus == 'Current') {
       return true;
     }
   }
@@ -339,5 +394,9 @@ export class RecordCardComponent implements OnInit {
 
   private getBullhornId(param: string): number {
     return parseInt(this.route.snapshot.queryParamMap.get(param), 10);
+  }
+
+  private getBullhornEntity(param:string) {
+    return this.route.snapshot.queryParamMap.get(param);
   }
 }
